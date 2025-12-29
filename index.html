@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kaza Takip – Öğle</title>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#5f7cff">
+
+<style>
+:root{
+  --bg:#0b1020; --card:#121a33; --line:#22305a;
+  --accent:#5f7cff; --good:#2bd48f;
+}
+*{box-sizing:border-box;font-family:system-ui}
+body{margin:0;background:var(--bg);color:#eef1f7}
+.wrap{max-width:760px;margin:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0}
+button{padding:14px;border-radius:14px;border:0;background:var(--accent);color:white;font-size:18px;font-weight:700}
+button.secondary{background:#1d2a53;border:1px solid var(--line)}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.keypad button{font-size:24px}
+#display{font-size:32px;text-align:center;padding:14px;border:1px solid var(--line);border-radius:12px;margin:10px 0}
+.progress{height:14px;background:#0f1630;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--good));transition:.4s}
+.celebrate{display:none;margin-top:12px;padding:14px;border-radius:14px;background:#0f2a1f;border:1px solid var(--good)}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<h2>🕌 Öğle Kaza Takip</h2>
+
+<div class="card">
+<b>Hedef belirle</b><br><br>
+<input id="target" type="number" placeholder="Örn: 1500" style="width:100%;padding:12px;border-radius:12px">
+<br><br>
+<button class="secondary" onclick="saveTarget()">Hedefi Kaydet</button>
+<p id="tmsg"></p>
+</div>
+
+<div class="card">
+<b>Kaç tane kıldın?</b>
+
+<div id="display">0</div>
+
+<div class="keypad">
+<button onclick="press(1)">1</button>
+<button onclick="press(2)">2</button>
+<button onclick="press(3)">3</button>
+<button onclick="press(4)">4</button>
+<button onclick="press(5)">5</button>
+<button onclick="press(6)">6</button>
+<button onclick="press(7)">7</button>
+<button onclick="press(8)">8</button>
+<button onclick="press(9)">9</button>
+<button onclick="clearOne()">←</button>
+<button onclick="press(0)">0</button>
+<button onclick="enterAdd()">✔</button>
+</div>
+
+<p>Toplam: <b id="done">0</b> | Kalan: <b id="left">0</b></p>
+<div class="progress"><div class="bar" id="bar"></div></div>
+
+<div class="celebrate" id="celebrate">
+🎉 <b>Elhamdülillah!</b><br>
+Öğle kazası tamamlandı. Allah kabul etsin 🤍
+</div>
+</div>
+
+</div>
+
+<script>
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("./sw.js");
+}
+
+const KT="ogle_target",KD="ogle_done";
+let current="0";
+
+function gi(k){return parseInt(localStorage.getItem(k)||0)}
+function si(k,v){localStorage.setItem(k,v)}
+
+function saveTarget(){
+  const v=parseInt(target.value||0);
+  if(v<=0)return;
+  si(KT,v); si(KD,0);
+  render();
+}
+
+function press(n){
+  current=(current==="0")?""+n:current+n;
+  display.innerText=current;
+}
+
+function clearOne(){
+  current=(current.length<=1)?"0":current.slice(0,-1);
+  display.innerText=current;
+}
+
+function enterAdd(){
+  const v=parseInt(current||0);
+  if(v<=0)return;
+  si(KD,gi(KD)+v);
+  current="0"; display.innerText="0";
+  render();
+}
+
+function render(){
+  const t=gi(KT), d=gi(KD), l=Math.max(0,t-d);
+  done.innerText=d; left.innerText=l;
+  bar.style.width=t?Math.min(100,d*100/t)+"%":"0%";
+  celebrate.style.display=(t>0 && l===0)?"block":"none";
+}
+
+render();
+</script>
+
+</body>
+</html>
